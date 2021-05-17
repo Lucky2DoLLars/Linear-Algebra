@@ -1,0 +1,37 @@
+vech = function(X){
+  
+  n_col = ncol(X)
+  n_row = nrow(X)
+  vech_vector = NULL
+  
+  for (j in 1:n_col){
+      vech_vector = append(vech_vector,X[,j][j:n_row])
+    }
+  return(vech_vector)
+}
+
+vec = function(X){
+  
+  n_col = ncol(X)
+  n_row = nrow(X)
+  vec_vector = rep(NA, n_col*n_row )
+  
+  for (j in 1:n_col){
+    vec_vector[(n_col*(j-1)+1):(n_col*j)] = X[,j]
+  }
+  return(vec_vector)
+
+}
+
+n = 10^8
+
+A = matrix(rpois(n,3),sqrt(n),sqrt(n))
+B = matrix(rpois(n,3),sqrt(n),sqrt(n))
+
+# vec
+system.time(vec(t(A)) %*% vec(B))
+
+# tr(Ab)
+system.time(sum(diag(A%*%B)))
+
+
