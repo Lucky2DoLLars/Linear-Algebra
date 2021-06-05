@@ -1,0 +1,80 @@
+rm(list=ls())
+
+givens.reg = function(X,y){
+  
+  X_dat = X
+  
+  n = nrow(X)
+  p = ncol(X)
+  
+  U = diag(n)
+  
+  for(i in 2:n){
+    
+    j = 1
+    
+    while(j <= min(i-1,p)){
+    
+      U_new = diag(n)
+      s = sqrt(X[j,j]^2 + X[i,j]^2)
+      
+      U_new[j,j] = X[j,j]/s
+      U_new[i,j] = -X[i,j]/s
+      U_new[j,i] = X[i,j]/s
+      U_new[i,i] = X[j,j]/s
+      
+      U = U_new %*% U
+      X = U_new %*% X
+      
+      j = j + 1
+      
+    }
+  }
+
+  R = X[1:p,1:p]
+  Q_t = U
+  z = Q_t %*% y
+
+  
+  b = backsolve(R,z)
+  
+  fit_values = X_dat %*% b
+  residuals = y - fit_values
+  SSE = sum(residuals^2)
+  SST = sum((y-mean(y))^2)
+  SSR = SST - SSE
+  MSE = SSE/(n-p)
+  MSR = SSR/(p-1)
+  F_ratio = MSR/MSE
+  
+  SSQ = c(SSR,SSE , SST)
+  MSSQ = c(MSR, MSE)
+  df= c(n-1,p-1,n-p)
+  
+  C = solve(t(R)%*%R)
+  b_se = rep(0,p)
+  for(i in 1:p){
+    b_se[i] = sqrt(C[i,i]*MSE)
+  }
+  
+  ANOVA = matrix(c(SSQ,df,MSSQ,0,F_ratio,rep(0,2)),nrow=3,ncol=4)
+  
+  rownames(ANOVA) = c("regression","error","total")
+  colnames(ANOVA) = c("sum of squares","df", "mean sum of squares", "f_ratio")
+
+
+
+  return(list(b = b, b_se = b_se,
+              fitted_values = fit_values,
+              residuals = residuals,
+              ANOVA = ANOVA))
+}
+
+
+X = matrix(c(rep(1,7),
+             -3:3,
+             c(0,1,4,9,16,25,36)),nrow=7,ncol=3)
+y = c(1,2,3,5,7,9,11)
+l = lm(y~X[,c(2,3)])
+givens.reg(X,y)
+summary(l)
