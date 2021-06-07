@@ -1,0 +1,84 @@
+rm(list = ls())
+
+set.seed(2)
+n <- 5
+A <- matrix(rnorm(n^2), n, n)
+b <- matrix(rnorm(n), n, 1)
+
+Q = matrix(c(1,2,-1,0,
+         1/2,1,0,1,
+         0,2,-1/2,3/2,
+         1,-1,3/2,0), nrow=4, ncol=4 , byrow=TRUE)
+
+
+solve.LU <- function(A, b) {
+  
+  n = ncol(A)
+  
+  P_list = list()
+  m_list = list()
+  
+  for (k in 1:(n-1))  {
+
+    P = diag(n)  # producing P
+    switch_v = rep(0,n)
+    switch_v[c(k:n)] = A[k:n,k]
+    replacing_row = which.max(abs(switch_v))
+    P[replacing_row,k] = 1
+    P[replacing_row,replacing_row] = 0
+    P[k,k] = 0
+    P[k,replacing_row] = 1
+    
+    P_list[[k]] = P
+
+    A <- P %*% A  # update A
+    
+    M = diag(n)
+    M[(k+1):n,k] = -A[(k+1):n,k]/A[k,k]
+    m = rep(0,n)
+    m[c((k+1):n)] = A[(k+1):n,k]/A[k,k]
+    m_list[[k]] = m
+    
+    A = M %*% A
+  }
+  
+  U = A
+
+  P_mul = P_list[[1]]
+  L = diag(n)
+  
+  if(n>2){
+    for (i in 2:length(P_list)){
+      P_mul = P_list[[i]] %*% P_mul
+      }
+      
+    
+
+    for (i in 1:(n-2)){
+      
+      P = P_list[[n-1]]
+      
+      for(j in length(P_list):(i+1)){
+        P = P_list[[j]] %*% P
+      }
+  
+      L[,i] = L[,i] + P %*% m_list[[i]]
+    }
+  }
+  L[,n-1] = L[,n-1] + m_list[[n-1]]
+  
+  y = forwardsolve(L, P_mul %*% b)
+  x = backsolve(U,y)
+  
+  obj <- list(x = x, L = L, U = U)
+  return(obj)
+}
+
+A = matrix(c(0,1,1,
+             0,1,0,
+             1,0,1),nrow=3,byrow=T)
+b = c(2,3,4)
+A = matrix(c(0,4,5,0),nrow=2,byrow=T)
+solve(A,b)
+solve.LU(A,b)
+solve.LU(Q,c(1/2,1,3/2,2))
