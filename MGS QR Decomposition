@@ -1,0 +1,36 @@
+X = matrix(c(rep(1,6),1:6,c(1,4,9,16,25,36)),nrow=6,ncol=3)
+
+MGS.QR = function(X){
+   
+n = nrow(X)
+p = ncol(X)
+       
+Q = matrix(0,n,p)
+R = matrix(0,p,p)
+         
+R[1,1] = sqrt(sum(X[,1]^2))
+Q[,1] = X[,1]/R[1,1]
+           
+ for (i in 2:p){
+                 
+  j = 1
+                   
+  while(j <= i-1){
+                       
+   R[j,i] = Q[,j] %*% X[,i]
+                           
+   X[,i] = X[,i] - R[j,i]*Q[,j]
+                             
+   j = j + 1 
+   
+   }
+
+  R[i,i] = sqrt(sum(X[,i]^2))
+  Q[,i] = X[,i]/R[i,i]
+                    
+ }
+           
+return(list(Q = Q, R = R))
+}
+
+MGS.QR(X)
