@@ -1,2 +1,2 @@
 # Linear-Algebra
-$f$
+$$f$$
